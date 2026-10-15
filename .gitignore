@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[oc]
+.venv
+
+# Artefak probe
+*.html
+*.json
+*.jsonl
+jar*.txt
+js/
