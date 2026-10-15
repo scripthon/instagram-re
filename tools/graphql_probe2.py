@@ -68,8 +68,8 @@ def run_one(t):
         'server_timestamps': 'true',
         '__a': '1', '__user': '0', '__req': 'q',
         '__rev': '1050297038',
-        'hsi': '7696444550046515791',
-        'lsd': 'AdQ_-b3p-kWBpYlPNgPmwotOdjo',
+        'hsi': '<HSI>',
+        'lsd': '<LSD>',
     }
     cmd = ['curl', '-s', '-b', JAR, '-c', JAR, '-A', UA,
            '-H', 'Accept: */*', '-H', 'Accept-Language: en-US,en;q=0.9',
