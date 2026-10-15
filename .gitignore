@@ -3,9 +3,10 @@ __pycache__/
 *.py[oc]
 .venv
 
-# Artefak probe
+# Artefak probe (kecuali sample yang sengaja dikomit)
 *.html
 *.json
 *.jsonl
 jar*.txt
 js/
+!data-samples/*.json
