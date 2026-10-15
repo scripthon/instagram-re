@@ -79,7 +79,9 @@ __a=1&__user=0&__req=q&__rev=<client_revision>&hsi=<hsi>&lsd=<lsd>
 
 ## Blokir dari server
 
-Diuji dari VPS CrawlerFox (Oracle datacenter IP), tanpa proxy:
+Diuji dari VPS CrawlerFox (Oracle datacenter IP), tanpa proxy.
+
+Request pertama:
 
 ```
 GET https://i.instagram.com/api/v1/users/web_profile_info/?username=nasa
@@ -88,4 +90,17 @@ GET https://i.instagram.com/api/v1/users/web_profile_info/?username=nasa
 → HTTP 200 (~274 KB)
 ```
 
-**Tidak diblokir** → manifest scraper `proxy: optional`.
+Setelah beberapa request dalam hitungan menit, endpoint mobile ini kena gate:
+
+```
+HTTP 401
+{"message":"Please wait a few minutes before you try again.",
+ "require_login":true,"igweb_rollout":true,"status":"fail"}
+```
+
+Gate bertahan >20 menit pada IP datacenter ini. Endpoint GraphQL (`post` by
+shortcode, profil by id) dan oEmbed saat yang sama tetap `200`.
+
+Kesimpulan: tidak ada hard-block (bukan Cloudflare 403), tapi endpoint profil
+tidak andal dari IP server → manifest scraper **`proxy: required`, `status: beta`**.
+Scraper membalas `503 UPSTREAM_BLOCKED` saat tergate (perilaku benar).

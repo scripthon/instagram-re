@@ -13,7 +13,7 @@ Peta API publik Instagram yang bisa dipakai **tanpa login** (logged-out), hasil 
 | Endpoint hidup | `web_profile_info` (profil+12 post), GraphQL `PolarisPostRootQuery` (post), GraphQL `PolarisProfilePageContentQuery` (profil by id), oEmbed |
 | Metode | HTTP (tanpa browser), **wajib HTTP/2** |
 | Auth | tidak ada — logged-out guest |
-| Blokir dari server | **Tidak diblokir** (profil `nasa` → 200) → manifest `proxy: optional` |
+| Blokir dari server | Hard-block: tidak. Tapi endpoint mobile `web_profile_info` kena gate `401 igweb_rollout` setelah sedikit burst dari IP datacenter → manifest `proxy: required`, `status: beta` |
 | Yang butuh login | pagination post, followers/following, hashtag, search, komentar, HTML profil |
 
 Detail lengkap:
