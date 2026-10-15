@@ -156,33 +156,43 @@ Daftar doc_id yang terekstrak (per 14 Okt 2026, bundle embed/landing) — lihat
 - URL media (`scontent…cdninstagram.com`) punya signature (`oh`/`oe`) yang
   kedaluwarsa — jangan simpan mentah untuk jangka panjang.
 
-## 6. Artefak di repo ini & cara pakai
+## 6. Dua repo & cara pakai
 
-```
-ig_scraper.py      # scraper logged-out (httpx + HTTP/2): profile/post/oembed
-graphql_probe2.py  # alat probe GraphQL RE: routing distillery/www + header wajib
-probe.sh           # sweep awal endpoint /api/v1/* (curl statis)
-doc_ids.txt        # daftar doc_id + nama query hasil ekstrak bundle (14 Okt 2026)
-requirements.txt   # httpx[http2]
-```
+| Repo | Isi |
+|---|---|
+| `scripthon/instagram-re` (repo ini) | NOTES.md ini, `graphql_probe2.py`, `probe.sh`, `doc_ids.txt` |
+| `scripthon/instagram-client` | client Python berbasis uv (`httpx[http2]`): CLI `instagram-client` + class `InstagramScraper` |
+
+Client hanya **mengirim raw response** (JSON mentah dari endpoint, tanpa
+normalisasi; error API seperti gate/login_required ikut sebagai isi JSON):
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python ig_scraper.py          # demo: profile nasa -> post -> oembed
+uv run instagram-client profile <username>   # web_profile_info (profil + 12 post)
+uv run instagram-client post <shortcode>     # PolarisPostRootQuery
+uv run instagram-client by-id <user_id>      # PolarisProfilePageContentQuery
+uv run instagram-client oembed <url-post>    # oEmbed resmi
 ```
 
 ```python
-from ig_scraper import InstagramScraper
-s = InstagramScraper()                  # min_interval=6 dtk, auto-retry gate/429
-prof = s.profile("nasa")                # profil + 12 post terbaru
-detail = s.post(prof["recent_posts"][0]["shortcode"])
-by_id = s.profile_by_id(prof["id"])     # catatan: media_count=null utk logged-out
-info = s.oembed("https://www.instagram.com/p/<code>/")
+from instagram_client import InstagramScraper
+
+s = InstagramScraper()          # throttle + retry gate/429
+prof = s.profile("nasa")        # {"data": {"user": {...}}, "status": "ok"}
+node = prof["data"]["user"]["edge_owner_to_timeline_media"]["edges"][0]["node"]
+detail = s.post(node["shortcode"])   # {"data": {"xdt_api__v1__media__shortcode__web_info": ...}}
 ```
 
-Perilaku yang ditangani scraper: throttle acak, retry 401 `require_login` /
-429 dengan backoff, envelope error FB `for (;;);{"__ar":1,…}`, ekstraksi
-`lsd`/`hsi`/`__rev`/`csrftoken` otomatis dari landing page.
+Catatan respons:
+- Prefix anti-JSON Facebook `for (;;);` dilepas supaya body valid JSON; sisanya
+  mentah. Bila body bukan JSON sama sekali, client membungkus
+  `{"__raw__": "<teks>", "__http_status__": <kode>}`.
+- `by-id` membalas `media_count: null` untuk logged-out (memang begitu dari
+  server); jumlah post asli ada di `profile()` (field
+  `edge_owner_to_timeline_media.count`).
+- Transport: throttle acak (~6 dtk), retry backoff untuk gate 401
+  `require_login` / HTTP 429, retry untuk envelope error FB
+  `for (;;);{"__ar":1,…}`, ekstraksi otomatis `lsd`/`hsi`/`__rev`/`csrftoken`
+  dari landing page.
 
 Refresh doc_id bila query mulai error: unduh bundle JS dari halaman mana pun
 lalu jalankan pola grep di §3 (nama query relatif stabil, angkanya berubah tiap
